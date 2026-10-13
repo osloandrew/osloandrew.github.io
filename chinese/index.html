@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moved to LingoNeko</title>
+<link rel="canonical" href="https://chinese.lingoneko.com/">
+<meta http-equiv="refresh" content="0; url=https://chinese.lingoneko.com/">
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:0;display:grid;place-items:center;min-height:100vh;background:#f5f6f8;color:#1b2b4b}
+main{max-width:30rem;margin:1rem;padding:1.5rem;background:#fff;border:1px solid #d9dde5;border-radius:12px}
+h1{font-size:1.25rem;margin:0 0 .5rem}a{color:#2563eb}button{font:inherit;padding:.5rem 1rem;border-radius:8px;border:1px solid #1b2b4b;background:#1b2b4b;color:#fff;cursor:pointer}</style>
+</head>
+<body>
+<main>
+<h1>This address has moved</h1>
+<p id="message">Taking you to the new address&hellip;</p>
+<p><a id="action" href="https://chinese.lingoneko.com/" hidden></a></p>
+<noscript><p><a href="https://chinese.lingoneko.com/">Continue to the new address</a></p></noscript>
+</main>
+<script>
+(function () {
+  var MAP = {
+  "chinese": {
+    "handoffPrefix": "chinese-dictionary",
+    "origin": "https://chinese.lingoneko.com"
+  },
+  "croatian": {
+    "handoffPrefix": null,
+    "origin": "https://croatian.lingoneko.com"
+  },
+  "german": {
+    "handoffPrefix": null,
+    "origin": "https://german.lingoneko.com"
+  },
+  "hebrew": {
+    "handoffPrefix": null,
+    "origin": "https://hebrew.lingoneko.com"
+  },
+  "italian": {
+    "handoffPrefix": null,
+    "origin": "https://italian.lingoneko.com"
+  },
+  "persian": {
+    "handoffPrefix": null,
+    "origin": "https://persian.lingoneko.com"
+  }
+};
+  var HOME = "https://lingoneko.com/";
+  var MAX = 1000000;
+  var message = document.getElementById("message");
+  var action = document.getElementById("action");
+
+  function show(text, label, url) {
+    if (message) message.textContent = text;
+    if (action) {
+      action.textContent = label;
+      action.href = url;
+      action.hidden = false;
+    }
+  }
+
+  function collect(prefix) {
+    var keys = {};
+    var any = false;
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key && key.indexOf(prefix + "-") === 0) {
+          keys[key] = localStorage.getItem(key);
+          any = true;
+        }
+      }
+    } catch (error) {
+      return null;
+    }
+    return any ? keys : null;
+  }
+
+  function encode(object) {
+    var json = JSON.stringify(object);
+    return btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  var parts = location.pathname.split("/");
+  var key = (parts[1] || "").toLowerCase();
+  var language = MAP[key];
+  if (!language) {
+    show("This address has moved.", "Go to LingoNeko", HOME);
+    return;
+  }
+  var rest = "/" + parts.slice(2).join("/");
+  var base = language.origin + rest + location.search;
+  var target = base + location.hash;
+
+  if (language.handoffPrefix) {
+    var keys = collect(language.handoffPrefix);
+    if (keys) {
+      var packed = encode({ v: 1, ts: Date.now(), from: key, keys: keys, h: location.hash });
+      if (packed.length > MAX) {
+        show(
+          "Your saved data is too large to carry over automatically. Your progress stays in this browser, and signing in on the new site restores synced progress.",
+          "Continue to the new site",
+          target
+        );
+        return;
+      }
+      target = base + "#lnh=" + packed;
+    }
+  }
+  location.replace(target);
+})();
+</script>
+</body>
+</html>
